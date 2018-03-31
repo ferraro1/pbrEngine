@@ -24,6 +24,7 @@ from .states import PbrGuis, PbrStates
 from .util import bytesToString, floatToIntRepr, EventHook
 from .abstractions import timer, cursor, match
 from .avatars import AvatarsBlue, AvatarsRed
+from .memorymap.values import Colosseums    # testing
 
 logger = logging.getLogger("pbrEngine")
 
@@ -316,7 +317,7 @@ class PBREngine():
             self.cancel()
             self._fSkipWaitForNew = True
 
-        self.colosseum = colosseum
+        self.colosseum = Colosseums['COURTYARD']    # testing
         # just use whatever positions, not needed anymore
         #self._posBlues = [int(p["position"]) for p in pkmn_blue]
         #self._posReds = [int(p["position"]) for p in pkmn_red]
@@ -340,7 +341,9 @@ class PBREngine():
         else:
             self._setAnimSpeed(self._increasedSpeed)
 
-        self._newRng()  # avoid patterns (e.g. always fog at courtyard)
+        # Set seed to 0 and check whether there's fog.
+        self._newRng(0)  # For some reason, fog still appears randomly?
+
         self._dolphin.volume(0)
 
     def cancel(self):
@@ -485,10 +488,16 @@ class PBREngine():
         self.state = state
         self.on_state(state=state)
 
-    def _newRng(self):
-        '''Helper method to replace the RNG-seed with a random 32 bit value.'''
-        self._dolphin.write32(Locations.RNG_SEED.value.addr, random.getrandbits(32))
+    def _newRng(self, value=None):
+        '''Helper method to replace the RNG-seed with a 32 bit value.'''
+        if value is None:
+            value = random.getrandbits(32)
+        self._dolphin.write32(Locations.RNG_SEED.value.addr, value)
 
+    def _getRng(self):
+        seed = AsyncResult()
+        self._dolphin.read32(Locations.RNG_SEED.value.addr, seed.set)
+        return seed.get()
 
     def _injectPokemon(self):
         # BPStructOffsets
