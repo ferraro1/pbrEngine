@@ -341,8 +341,12 @@ class PBREngine():
         else:
             self._setAnimSpeed(self._increasedSpeed)
 
-        # Set seed to 0 and check whether there's fog.
-        self._newRng(0)  # For some reason, fog still appears randomly?
+        # Apparently, seed always starts at 0.  But for some reason, fog still appears randomly?
+        logger.warning("Seed: %d" % self._getRng())
+
+        # Setting a different value doesn't help, fog still appears randomly.
+        # self._newRng(1)  # Set seed to some different value.
+        # logger.warning("Seed: %d" % self._getRng())
 
         self._dolphin.volume(0)
 
